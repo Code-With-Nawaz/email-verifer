@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification Details</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional: for custom styles -->
+</head>
+<body>
+    <h1>Email Verification Details</h1>
+    <table id="emailsTable">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Domain</th>
+                <th>Status</th>
+                <th>MX Records</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchEmailDetails() {
+            try {
+                const response = await fetch('/get-all-emails');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const emails = await response.json();
+                const tableBody = document.querySelector('#emailsTable tbody');
+
+                emails.forEach(emailDoc => {
+                    const row = document.createElement('tr');
+                    
+                    // Format MX Records
+                    const mxRecordsFormatted = emailDoc.mxRecords 
+                        ? emailDoc.mxRecords.map(record => record.exchange).join(', ')
+                        : 'N/A';
+                    
+                    row.innerHTML = `
+                        <td>${emailDoc.email}</td>
+                        <td>${emailDoc.domain}</td>
+                        <td>${emailDoc.status}</td>
+                        <td>${mxRecordsFormatted}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching email details:', error);
+            }
+        }
+
+        // Fetch data on page load
+        window.onload = fetchEmailDetails;
+    </script>
+</body>
+</html>
