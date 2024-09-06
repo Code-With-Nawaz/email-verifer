@@ -16,7 +16,10 @@ const collectionName = process.env.COLLECTION_NAME; // Collection name from .env
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.use(express.static('public'));
+app.use(express.static('public')); // Serve static files from 'public' directory
+
+// Global variable to control verification
+let verificationRunning = false;
 
 // Route to serve the HTML page
 app.get('/view-emails', (req, res) => {
@@ -28,6 +31,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     const fileBuffer = req.file.buffer.toString('utf-8').split('\n');
     const emails = fileBuffer.map(email => email.trim()).filter(email => email);
 
+    // Log the emails to the console
     console.log('Uploaded Emails:', emails);
 
     const client = new MongoClient(url);
@@ -53,6 +57,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         console.log('Emails uploaded to the database.');
         res.json({ message: 'Emails uploaded successfully. Verification in progress.' });
 
+        // Start email verification process
+        verificationRunning = true; // Set verification to running
         await verifyEmails();
     } catch (error) {
         console.error('Error uploading emails:', error);
@@ -62,6 +68,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     }
 });
 
+// Function to perform email verification
 async function verifyEmails() {
     const client = new MongoClient(url);
 
@@ -70,6 +77,7 @@ async function verifyEmails() {
         const database = client.db(dbName);
         const collection = database.collection(collectionName);
 
+        // Find pending emails
         const emailsToVerify = await collection.find({ status: 'pending' }).toArray();
 
         if (emailsToVerify.length === 0) {
@@ -80,6 +88,11 @@ async function verifyEmails() {
         console.log('Starting verification for pending emails:', emailsToVerify.map(doc => doc.email));
 
         for (const emailDoc of emailsToVerify) {
+            if (!verificationRunning) {
+                console.log('Verification stopped.');
+                break;
+            }
+
             const { email } = emailDoc;
             const domain = email.split('@')[1];
 
@@ -107,14 +120,26 @@ async function verifyEmails() {
     }
 }
 
-// Route to manually start email verification (for testing)
+// Route to manually start email verification
 app.get('/start-verification', async (req, res) => {
+    if (verificationRunning) {
+        res.json({ message: 'Email verification is already running.' });
+        return;
+    }
+
+    verificationRunning = true; // Set verification to running
     try {
         await verifyEmails();
         res.json({ message: 'Email verification process started.' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// Route to stop email verification
+app.get('/stop-verification', (req, res) => {
+    verificationRunning = false; // Set verification to stopped
+    res.json({ message: 'Email verification process stopped.' });
 });
 
 // Route to get all email details
@@ -126,8 +151,10 @@ app.get('/get-all-emails', async (req, res) => {
         const database = client.db(dbName);
         const collection = database.collection(collectionName);
 
+        // Retrieve all emails from the database
         const emails = await collection.find({}).toArray();
 
+        // Send the data as a JSON response
         res.json(emails);
     } catch (error) {
         console.error('Error retrieving email details:', error);
@@ -139,7 +166,8 @@ app.get('/get-all-emails', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
-    console.log(`To start pending verification: http://localhost:${port}/start-verification`);
+    console.log(`To start verification: http://localhost:${port}/start-verification`);
+    console.log(`To stop verification: http://localhost:${port}/stop-verification`);
     console.log(`To get all emails: http://localhost:${port}/get-all-emails`);
-    console.log(`To view all emails in table format: http://localhost:${port}/view-emails`);
+    console.log(`To view emails: http://localhost:${port}/view-emails`);
 });
