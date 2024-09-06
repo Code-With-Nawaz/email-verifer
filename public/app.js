@@ -47,3 +47,35 @@ function uploadFile() {
         console.error('No file selected.');
     }
 }
+
+// Event listener for Start Verification button
+document.getElementById('startVerification').addEventListener('click', () => {
+    fetch('/start-verification')
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+});
+
+// Event listener for Stop Verification button
+document.getElementById('stopVerification').addEventListener('click', () => {
+    fetch('/stop-verification')
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error:', error));
+});
+
+// Event listener for Get All Emails button
+document.getElementById('getAllEmails').addEventListener('click', () => {
+    fetch('/get-all-emails')
+        .then(response => response.json())
+        .then(data => {
+            // Display email data (could be improved with table rendering)
+            alert(JSON.stringify(data, null, 2));
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+// Event listener for View Emails button
+document.getElementById('viewEmails').addEventListener('click', () => {
+    window.location.href = '/view-emails';
+});

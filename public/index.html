@@ -3,19 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Checker</title>
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        form {
+            margin: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Email Checker</h1>
+    <h1>Email Verification Dashboard</h1>
+    
+    <!-- File upload form -->
     <form id="uploadForm">
         <label for="fileInput">Upload Email Checklist:</label>
         <input type="file" id="fileInput" accept=".txt, .xlsx" />
         <button type="button" onclick="uploadFile()">Upload</button>
     </form>
-    <hr/>
-    <button><a href="/start-verification" target="_blank">Start Verification</a></button>
-    <br/>
-    <button><a href="/stop-verification" target="_blank">Stop Verification</a></button>
+
+    <!-- Action buttons -->
+    <button id="startVerification">Start Verification</button>
+    <button id="stopVerification">Stop Verification</button>
+    <button id="getAllEmails">Get All Emails</button>
+    <button id="viewEmails">View Emails</button>
+
     <script src="app.js"></script>
 </body>
 </html>
